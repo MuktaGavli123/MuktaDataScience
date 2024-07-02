@@ -1,0 +1,92 @@
+import cv2
+from IPython.display import display, clear_output
+import PIL.Image
+import io
+import IPython.display
+
+# Load pre-trained face detector model
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# Function to convert frame to displayable image
+def show_frame(frame):
+    # Convert the frame to RGB (OpenCV uses BGR by default)
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    # Convert the frame to an image format
+    img = PIL.Image.fromarray(frame_rgb)
+    # Display the image
+    with io.BytesIO() as f:
+        img.save(f, format='PNG')
+        f.seek(0)
+        display(IPython.display.Image(data=f.read()))
+
+# Capture video from the webcam
+video_cap = cv2.VideoCapture(0)
+
+try:
+    while True:
+        ret, frame = video_cap.read()
+        if not ret:
+            break
+        
+        # Convert frame to grayscale for face detection
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Detect faces
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        
+        # Draw rectangles around detected faces
+        for (x, y, w, h) in faces:
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
+        
+        clear_output(wait=True)  # Clear previous output
+        show_frame(frame)  # Display current frame
+        
+        if cv2.waitKey(10) == ord('a'):
+            break
+except KeyboardInterrupt:
+    print("Camera disabled")
+finally:
+    # Release the video capture object
+    video_cap.release()
+    cv2.destroyAllWindows()
+    clear_output()
+    print("Camera released")
+//import cv2
+import numpy as np
+import time
+
+# Function to take a screenshot from the webcam
+def take_screenshot():
+    # Capture video from the webcam
+    video_cap = cv2.VideoCapture(0)
+    
+    try:
+        ret, frame = video_cap.read()
+        if not ret:
+            return None
+        
+        # Convert frame to RGB (OpenCV uses BGR by default)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        return frame_rgb
+    finally:
+        # Release the video capture object
+        video_cap.release()
+
+# Function to save the screenshot
+def save_screenshot(image, filename):
+    img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # Convert RGB to BGR
+    cv2.imwrite(filename, img)
+
+# Take the first screenshot
+first_screenshot = take_screenshot()
+if first_screenshot is not None:
+    save_screenshot(first_screenshot, "first_screenshot.png")
+    print("First screenshot saved.")
+
+# Wait for a few seconds before taking the second screenshot
+time.sleep(5)
+
+# Take the second screenshot
+second_screenshot = take_screenshot()
+if second_screenshot is not None:
+    save_screenshot(second_screenshot, "second_screenshot.png")
+    print("Second screenshot saved.")
